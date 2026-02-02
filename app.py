@@ -5,7 +5,6 @@ from threading import Thread
 
 MODEL_ID = "DimasMP3/qwen2.5-math-finetuned-7b"
 
-
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_use_double_quant=True,
@@ -13,14 +12,19 @@ bnb_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype=torch.float16
 )
 
+print(f"System: Loading model {MODEL_ID}...")
+
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 
+# 2. Load Model dengan Config Baru
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID,
-    quantization_config=bnb_config, 
+    quantization_config=bnb_config,
     device_map="auto",
     low_cpu_mem_usage=True
 )
+
+print("System: Model loaded!")
 
 def format_prompt(user_query):
     return f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
@@ -63,14 +67,13 @@ def predict(message, history):
 
 demo = gr.ChatInterface(
     fn=predict,
-    title="Sultan Math AI Solver",
+    title="LLM Math AI Solver",
     description="Qwen 2.5 (7B Parameters) Fine-Tuned Model for Mathematical Reasoning",
     examples=[
         "Solve the equation 3x + 10 = 25",
         "Calculate the derivative of f(x) = 4x^3 - 2x",
         "A triangle has a base of 10cm and a height of 5cm, what is its area?"
     ],
-    theme="soft",
     cache_examples=False,
 )
 
