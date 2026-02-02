@@ -25,3 +25,38 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Math Typography Improvements */
+.math-display {
+  text-align: left;
+  line-height: 1.8;
+}
+
+.math-display p {
+  hyphens: auto;
+  text-align: justify;
+}
+
+/* Ensure equation blocks have nice spacing and scroll if needed */
+.katex-display {
+  margin: 1.5rem 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+/* Fix font size mismatch for inline math */
+.katex {
+  font-size: 1.15em !important;
+  line-height: 1 !important;
+}
+
+/* Hide scrollbars for cleaner look */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

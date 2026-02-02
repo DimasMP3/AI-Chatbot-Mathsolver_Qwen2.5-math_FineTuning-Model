@@ -6,8 +6,8 @@ export const APP_CONFIG = {
 };
 
 export const EXAMPLE_PROMPTS = [
-    "Solve x^2 + 5x + 6 = 0",
-    "Integrate cos(x) dx",
-    "Derivative of x * ln(x)",
-    "Simplify (a^3 * b^-2) / (a^-1 * b^2)",
+    "What is the result of $12 \ times 8 + 5$? A. 96 B. 101 C. 106 D. 120",
+    "Solve for $x$: $3x - 7 = 14$ A. 5 B. 6 C. 7 D. 8",
+    " If a shirt costs $ \ $40$ and is discounted by $20\ %$, what is the final price? A. $ \ $30$ B. $ \ $32$ C. $ \ $35$ D. $ \ $38$",
+    " A train travels 240 kilometers in 3 hours. What is its average speed? A. $60 \text{ km/h}$ B. $70 \text{ km/h}$ C. $80 \text{ km/h}$ D. $90 \text{ km/h}$",
 ];
