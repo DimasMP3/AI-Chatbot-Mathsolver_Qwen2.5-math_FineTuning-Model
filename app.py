@@ -1,26 +1,17 @@
 import gradio as gr
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 from threading import Thread
 
 MODEL_ID = "DimasMP3/qwen2.5-math-finetuned-7b"
 
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16
-)
-
-print(f"System: Loading model {MODEL_ID}...")
+print(f"System: Loading model {MODEL_ID} on CPU...")
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 
-# 2. Load Model dengan Config Baru
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID,
-    quantization_config=bnb_config,
-    device_map="auto",
+    torch_dtype=torch.float32, 
     low_cpu_mem_usage=True
 )
 
@@ -38,19 +29,19 @@ Solve the following math problem step-by-step:
 
 def predict(message, history):
     prompt = format_prompt(message)
-    inputs = tokenizer([prompt], return_tensors="pt").to(model.device)
+    inputs = tokenizer([prompt], return_tensors="pt") 
 
     streamer = TextIteratorStreamer(
         tokenizer, 
         skip_prompt=True, 
         skip_special_tokens=True,
-        timeout=10.0
+        timeout=60.0 
     )
 
     generation_kwargs = dict(
         inputs,
         streamer=streamer,
-        max_new_tokens=1024,
+        max_new_tokens=512, 
         do_sample=True,
         temperature=0.3, 
         top_p=0.9,
@@ -67,12 +58,10 @@ def predict(message, history):
 
 demo = gr.ChatInterface(
     fn=predict,
-    title="LLM Math AI Solver",
-    description="Qwen 2.5 (7B Parameters) Fine-Tuned Model for Mathematical Reasoning",
+    title="Sultan Math AI Solver (CPU Mode)",
+    description="Qwen 2.5 (7B) running on CPU. Might be slow!",
     examples=[
-        "Solve the equation 3x + 10 = 25",
-        "Calculate the derivative of f(x) = 4x^3 - 2x",
-        "A triangle has a base of 10cm and a height of 5cm, what is its area?"
+        "Solve 3x + 10 = 25",
     ],
     cache_examples=False,
 )
