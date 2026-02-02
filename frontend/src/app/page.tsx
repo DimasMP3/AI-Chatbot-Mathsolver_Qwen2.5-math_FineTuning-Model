@@ -1,18 +1,19 @@
 
 "use client";
 
-import { useRef } from "react";
-import { Send, Bot, User, Loader2, Sparkles, Plus, Image as ImageIcon, Mic } from "lucide-react";
+import { useRef, useState } from "react";
+import { Send, User, Sparkles, Plus, Image as ImageIcon, Mic, Menu, MessageSquarePlus, History, Settings, HelpCircle, ChevronDown, Bot, SquareTerminal, LayoutGrid } from "lucide-react";
 import MathDisplay from "@/components/MathDisplay";
 import { useChat } from "@/hooks/use-chat";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { EXAMPLE_PROMPTS } from "@/constants";
 
 export default function Home() {
   const { messages, input, setInput, isLoading, messagesEndRef, handleSubmit } =
     useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -39,158 +40,263 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#131314] text-gray-900 dark:text-gray-100 font-sans">
-      <header className="sticky top-0 z-10 px-6 py-4 flex items-center justify-between bg-white/80 dark:bg-[#131314]/80 backdrop-blur-sm">
-        <div className="flex items-center gap-2 cursor-pointer opacity-80 hover:opacity-100 transition-opacity">
-          <span className="text-xl font-medium tracking-tight text-gray-600 dark:text-gray-300">Math Solver</span>
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 uppercase tracking-widest">Experimental</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-md">
-            U
-          </div>
-        </div>
-      </header>
+    <div className="flex h-screen bg-[#131314] text-[#e3e3e3] font-sans overflow-hidden selection:bg-blue-500/30">
 
-      <main className="max-w-3xl mx-auto px-5 pb-40">
-        <AnimatePresence mode="popLayout" initial={false}>
-          {messages.length === 0 && (
-            <motion.div
-              key="empty-state"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="flex flex-col min-h-[70vh] justify-center items-start py-12"
-            >
-              <div className="mb-8">
-                <h1 className="text-4xl md:text-5xl font-medium text-[#c4c7c5] tracking-tight mb-2">Hello, User</h1>
-                <h1 className="text-4xl md:text-5xl font-medium text-[#444746] dark:text-white tracking-tight">How can I help today?</h1>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                {EXAMPLE_PROMPTS.slice(0, 4).map((prompt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setInput(prompt)}
-                    className="text-left p-4 rounded-2xl bg-gray-100 dark:bg-[#1e1f20] hover:bg-gray-200 dark:hover:bg-[#333537] transition-colors group h-32 flex flex-col justify-between relative overflow-hidden"
-                  >
-                    <span className="text-gray-800 dark:text-gray-200 font-medium z-10 relative text-sm">{prompt}</span>
-                    <div className="self-end p-2 bg-white dark:bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm">
-                      <Sparkles size={14} className="text-blue-500" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {messages.map((msg, index) => (
-            <motion.div
-              key={msg.id || `msg-${index}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                "flex gap-4 mb-6 w-full",
-                msg.role === "user" ? "flex-row-reverse" : "flex-row"
-              )}
-            >
-              <div className="flex-none mt-1">
-                {msg.role === "assistant" ? (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-red-500 flex items-center justify-center text-white shadow-md">
-                    <Sparkles size={14} fill="white" />
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300">
-                    <User size={14} />
-                  </div>
-                )}
-              </div>
-
-              <div className={cn(
-                "max-w-[85%] text-base leading-7",
-                msg.role === "user" ? "text-right" : "text-left"
-              )}>
-                {msg.role === "user" ? (
-                  <div className="inline-block bg-[#f0f4f9] dark:bg-[#1e1f20] text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl rounded-tr-sm">
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                  </div>
-                ) : (
-                  <div className="text-gray-800 dark:text-gray-100 w-full">
-                    <MathDisplay content={msg.content} />
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          ))}
-
-          {isLoading && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex gap-4 mb-6"
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-red-500 flex items-center justify-center text-white p-1.5">
-                <Loader2 size={14} className="animate-spin" />
-              </div>
-              <div className="flex items-center gap-1 h-8">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
-            </motion.div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </AnimatePresence>
-      </main>
-
-      <footer className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white dark:from-[#131314] dark:via-[#131314] to-transparent z-20 pointer-events-none">
-        <div className="max-w-3xl mx-auto pointer-events-auto">
-          <form
-            onSubmit={handleFormSubmit}
-            className="relative bg-[#f0f4f9] dark:bg-[#1e1f20] rounded-[2rem] flex items-end p-2 transition-all hover:bg-[#e9eef6] dark:hover:bg-[#28292a] focus-within:bg-white dark:focus-within:bg-[#28292a] focus-within:shadow-lg ring-1 ring-transparent focus-within:ring-gray-300 dark:focus-within:ring-gray-600"
+      {/* Sidebar */}
+      <AnimatePresence mode="wait">
+        {isSidebarOpen && (
+          <motion.aside
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 280, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            className="flex-none bg-[#1e1f20] flex flex-col h-full overflow-hidden whitespace-nowrap"
           >
-            <button type="button" className="p-3 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded-full transition-colors">
-              <Plus size={20} />
-            </button>
-
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={handleInput}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything..."
-              rows={1}
-              className="w-full bg-transparent border-0 focus:ring-0 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 py-3 max-h-40 resize-none overflow-y-auto"
-              style={{ minHeight: "48px" }}
-            />
-
-            <div className="flex items-center gap-1 pr-1 pb-1">
-              <button type="button" className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded-full transition-colors">
-                <Mic size={20} />
-              </button>
-              <button type="button" className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded-full transition-colors">
-                <ImageIcon size={20} />
-              </button>
-              {input.trim() && (
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50"
-                >
-                  <Send size={16} />
-                </button>
-              )}
+            <div className="p-4 flex items-center justify-between">
+              <div className="p-2 hover:bg-[#333537] rounded-full cursor-pointer transition-colors" onClick={() => setIsSidebarOpen(false)}>
+                <Menu size={20} className="text-[#e3e3e3]" />
+              </div>
             </div>
-          </form>
-          <div className="text-center mt-2">
-            <p className="text-[10px] text-gray-500 dark:text-gray-500">
-              Math Solver may display inaccurate info, so double-check its responses.
-            </p>
+
+            <div className="px-4">
+              <button className="flex items-center gap-3 bg-[#1e1f20] hover:bg-[#333537] text-[#e3e3e3] px-4 py-3 rounded-[15px] transition-colors w-max">
+                <Plus size={18} />
+                <span className="text-sm font-medium">Percakapan baru</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+              <div>
+                <h3 className="text-xs font-medium text-[#c4c7c5] px-4 mb-2">Baru-baru ini</h3>
+                <div className="space-y-1">
+                  {["Kalkulus Integral", "Turunan Fungsi Aljabar", "Latihan Soal Matriks"].map((item, i) => (
+                    <button key={i} className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#333537] rounded-full transition-colors text-left truncate">
+                      <History size={16} />
+                      <span className="truncate">{item}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 mt-auto space-y-1 border-t border-[#444746]/30">
+              <button className="flex items-center gap-3 w-full px-4 py-3 text-sm text-[#e3e3e3] hover:bg-[#333537] rounded-full transition-colors text-left">
+                <HelpCircle size={18} />
+                <span>Bantuan</span>
+              </button>
+              <button className="flex items-center gap-3 w-full px-4 py-3 text-sm text-[#e3e3e3] hover:bg-[#333537] rounded-full transition-colors text-left">
+                <Settings size={18} />
+                <span>Setelan</span>
+              </button>
+              <div className="pt-2 flex items-center gap-3 px-4">
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+                  D
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">DimasMP3</span>
+                  <span className="text-[10px] text-gray-400">Free Account</span>
+                </div>
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col h-full relative">
+        {/* Header */}
+        <header className="flex-none px-5 py-4 flex items-center justify-between bg-[#131314] z-10">
+          <div className="flex items-center gap-2">
+            {!isSidebarOpen && (
+              <div className="p-2 hover:bg-[#333537] rounded-full cursor-pointer transition-colors mr-2" onClick={() => setIsSidebarOpen(true)}>
+                <Menu size={20} className="text-[#e3e3e3]" />
+              </div>
+            )}
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-1 hover:bg-[#333537] px-2 py-1 rounded-lg transition-colors"
+              >
+                <span className="text-[22px] font-medium text-[#e3e3e3] opacity-90 tracking-tight">MathAI</span>
+                <ChevronDown size={16} className={`text-[#c4c7c5] mt-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 mt-2 w-56 bg-[#1e1f20] rounded-xl shadow-lg border border-[#444746]/50 overflow-hidden z-50 py-2"
+                  >
+                    <div className="px-4 py-2 hover:bg-[#333537] cursor-pointer flex items-center justify-between group">
+                      <div>
+                        <span className="text-sm font-medium text-[#e3e3e3] block">MathAI-1.0</span>
+                        <span className="text-xs text-[#c4c7c5] description">Model Matematika Dasar</span>
+                      </div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
-        </div>
-      </footer>
+
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 hover:bg-[#333537] rounded-full flex items-center justify-center cursor-pointer transition-colors">
+              <LayoutGrid size={20} className="text-[#e3e3e3]" />
+            </div>
+            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold cursor-pointer">
+              D
+            </div>
+          </div>
+        </header>
+
+        {/* Chat Area */}
+        <main className="flex-1 overflow-y-auto w-full scroll-smooth no-scrollbar">
+          <div className="max-w-[850px] mx-auto px-5 pt-4 pb-48">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {messages.length === 0 && (
+                <motion.div
+                  key="empty-state"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex flex-col mt-12"
+                >
+                  <div className="mb-12 space-y-1">
+                    <span className="text-[56px] font-medium text-transparent bg-clip-text bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] leading-tight block">
+                      Hello, Dimas
+                    </span>
+                    <span className="text-[56px] font-medium text-[#444746] leading-tight block">
+                      Mau bantu apa hari ini?
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+
+              {messages.map((msg, index) => (
+                <motion.div
+                  key={msg.id || `msg-${index}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex gap-4 mb-8 w-full group"
+                >
+                  <div className="flex-none mt-1">
+                    {msg.role === "assistant" ? (
+                      <div className="mt-1">
+                        <Sparkles size={24} className="text-blue-400 animate-pulse-slow" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
+                        D
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-[#e3e3e3]">
+                        {msg.role === "assistant" ? "MathAI" : "Anda"}
+                      </span>
+                    </div>
+
+                    {msg.role === "assistant" ? (
+                      <div className="text-[#e3e3e3] text-[16px] leading-[1.8] font-normal tracking-wide">
+                        <MathDisplay content={msg.content} />
+                      </div>
+                    ) : (
+                      <p className="text-[#e3e3e3] text-[16px] leading-relaxed whitespace-pre-wrap">
+                        {msg.content}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Loading State */}
+              {isLoading && (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex gap-4 mb-8 w-full"
+                >
+                  <div className="flex-none mt-1">
+                    <Sparkles size={24} className="text-blue-400 animate-pulse" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-[#e3e3e3] block mb-2">MathAI</span>
+                    <div className="h-4 w-24 bg-[#333537] rounded animate-pulse" />
+                  </div>
+                </motion.div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </AnimatePresence>
+          </div>
+        </main>
+
+        {/* Input Footer */}
+        <footer className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
+          <div className={`mx-auto transition-all duration-300 ${isSidebarOpen ? 'pl-[280px]' : 'pl-0'}`}>
+            <div className="max-w-[850px] mx-auto px-5 pb-5 bg-[#131314] pointer-events-auto">
+
+              <div className="relative">
+                <form
+                  onSubmit={handleFormSubmit}
+                  className="bg-[#1e1f20] rounded-[32px] flex items-end relative border border-[#444746]/50 focus-within:bg-[#2a2b2d] focus-within:border-[#c4c7c5]/30 transition-all"
+                >
+                  <button
+                    type="button"
+                    className="p-4 text-[#c4c7c5] hover:text-[#e3e3e3] hover:bg-[#333537] rounded-full ml-1 mb-1 transition-colors"
+                  >
+                    <Plus size={22} />
+                  </button>
+
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={handleInput}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Minta MathAI"
+                    rows={1}
+                    className="w-full bg-transparent border-0 focus:ring-0 text-[#e3e3e3] placeholder:text-[#c4c7c5] py-5 px-2 max-h-[200px] resize-none overflow-y-auto text-[16px] leading-relaxed"
+                    style={{ minHeight: "64px" }}
+                  />
+
+                  <div className="flex items-center gap-2 pr-3 pb-3">
+                    {!input.trim() && (
+                      <>
+                        <button type="button" className="p-2 text-[#c4c7c5] hover:text-[#e3e3e3] hover:bg-[#333537] rounded-full transition-colors">
+                          <ImageIcon size={22} />
+                        </button>
+                        <button type="button" className="p-2 text-[#c4c7c5] hover:text-[#e3e3e3] hover:bg-[#333537] rounded-full transition-colors">
+                          <Mic size={22} />
+                        </button>
+                      </>
+                    )}
+
+                    {input.trim() && (
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="p-2 bg-[#e3e3e3] text-[#1e1f20] rounded-full hover:bg-white transition-all shadow-sm disabled:opacity-50"
+                      >
+                        <Send size={18} fill="#1e1f20" />
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              <p className="text-[12px] text-[#c4c7c5] text-center mt-3 font-normal">
+                MathAI dapat membuat kesalahan, jadi periksa kembali responsnya.
+              </p>
+            </div>
+          </div>
+        </footer>
+
+      </div>
     </div>
   );
 }
