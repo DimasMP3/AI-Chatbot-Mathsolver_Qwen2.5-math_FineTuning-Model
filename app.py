@@ -1,16 +1,24 @@
 import gradio as gr
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, BitsAndBytesConfig
 from threading import Thread
 
 MODEL_ID = "DimasMP3/qwen2.5-math-finetuned-7b"
 
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.float16
+)
+
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID,
-    torch_dtype=torch.float16,
+    quantization_config=bnb_config, 
     device_map="auto",
-    load_in_4bit=True,
     low_cpu_mem_usage=True
 )
 
