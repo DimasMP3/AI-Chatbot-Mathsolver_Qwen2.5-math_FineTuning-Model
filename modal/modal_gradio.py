@@ -84,8 +84,41 @@ class ModelEngine:
     def infer(self, user_query: str, temp: float = 0.3) -> str:
         import re
         
+        query_lower = user_query.lower().strip()
+        
+        # 1. Handle Greetings explicitly (Model overfits to math, so we intercept greetings)
+        greetings = ["halo", "hi", "hello", "hai", "selamat pagi", "selamat siang", "selamat sore", "selamat malam", "tes", "test", "p", "siang", "pagi", "malam", "sore"]
+        if query_lower in greetings:
+            return "Halo! Saya MathAI. Ada soal matematika yang bisa saya bantu selesaikan?"
+
+        # 2. Strict Input Validation
+        # If input is short AND has no numbers/math symbols, likely nice/gibberish
+        # We also check for math keywords to allow text-only math questions like "what is a derivative?"
+        
+        math_keywords = [
+            "hitung", "cari", "selesaikan", "tentukan", "berapa", "what", "solve", "find", "calculate",
+            "turunan", "integral", "limit", "matriks", "matrix", "akar", "pangkat", "kuadrat",
+            "sin", "cos", "tan", "log", "ln", "persamaan", "equation", "luas", "volume",
+            "derivatif", "derivative", "jumlah", "kurang", "kali", "bagi", "tambah", "hasil", "result"
+        ]
+        
+        has_digit = any(c.isdigit() for c in user_query)
+        has_math_symbol = any(s in user_query for s in ["+", "-", "*", "/", "=", "^", "\\", "<", ">", "(", ")"])
+        has_keyword = any(k in query_lower for k in math_keywords)
+        
+        # Guard clause: If short, no digits, no math symbols, and no keywords -> Reject
+        if len(query_lower) < 15 and not (has_digit or has_math_symbol or has_keyword):
+             return "Maaf, saya MathAI yang fokus pada matematika. Mohon berikan pertanyaan matematika atau persamaan yang jelas."
+
         prompt = f"""<|im_start|>system
-You are a helpful math tutor. Solve problems step by step. Use $...$ for inline math and $$...$$ for equations.<|im_end|>
+You are MathAI, a highly capable mathematics expert.
+Your goal is to solve math problems accurately and explain them step-by-step.
+
+IMPORTANT INSTRUCTIONS:
+- If the user input is a greeting or casual chat, reply naturally as an assistant.
+- If the input is NOT a math problem or is nonsensical, politely refuse to answer.
+- NEVER generate a math problem or solution if the user didn't ask for one.
+- Use $...$ for inline math and $$...$$ for block equations.<|im_end|>
 <|im_start|>user
 {user_query}<|im_end|>
 <|im_start|>assistant
@@ -100,7 +133,7 @@ You are a helpful math tutor. Solve problems step by step. Use $...$ for inline 
                 do_sample=True,
                 temperature=temp,
                 top_p=0.9,
-                repetition_penalty=1.15,
+                repetition_penalty=1.1,
                 pad_token_id=self.tokenizer.eos_token_id,
                 eos_token_id=self.tokenizer.eos_token_id
             )

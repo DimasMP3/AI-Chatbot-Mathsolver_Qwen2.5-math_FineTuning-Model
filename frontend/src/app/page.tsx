@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Send, User, Sparkles, Plus, Image as ImageIcon, Mic, Menu, MessageSquarePlus, History, Settings, HelpCircle, ChevronDown, Bot, SquareTerminal, LayoutGrid } from "lucide-react";
 import MathDisplay from "@/components/MathDisplay";
 import { useChat } from "@/hooks/use-chat";
@@ -9,11 +9,30 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
-  const { messages, input, setInput, isLoading, messagesEndRef, handleSubmit } =
+  const { messages, input, setInput, isLoading, handleSubmit } =
     useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const scrollToBottom = () => {
+    // Small delay to ensure DOM is updated (especially useful for ensuring height is correct)
+    setTimeout(() => {
+      if (scrollContainerRef.current) {
+        const { scrollHeight, clientHeight } = scrollContainerRef.current;
+        scrollContainerRef.current.scrollTo({
+          top: scrollHeight - clientHeight,
+          behavior: "smooth",
+        });
+      }
+    }, 100);
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -40,7 +59,20 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-[#131314] text-[#e3e3e3] font-sans overflow-hidden selection:bg-blue-500/30">
+    <div className="fixed inset-0 h-full bg-[#131314] text-[#e3e3e3] font-sans overflow-hidden selection:bg-blue-500/30 flex">
+
+      {/* Mobile Sidebar Overlay Backdrop */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/50 z-20 md:hidden glass-backdrop"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
       <AnimatePresence mode="wait">
@@ -49,7 +81,7 @@ export default function Home() {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 280, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            className="flex-none bg-[#1e1f20] flex flex-col h-full overflow-hidden whitespace-nowrap"
+            className="fixed md:relative z-30 h-full bg-[#1e1f20] flex flex-col overflow-hidden whitespace-nowrap shadow-2xl md:shadow-none border-r border-[#444746]/30 md:border-none"
           >
             <div className="p-4 flex items-center justify-between">
               <div className="p-2 hover:bg-[#333537] rounded-full cursor-pointer transition-colors" onClick={() => setIsSidebarOpen(false)}>
@@ -152,93 +184,94 @@ export default function Home() {
         </header>
 
         {/* Chat Area */}
-        <main className="flex-1 overflow-y-auto w-full scroll-smooth no-scrollbar">
-          <div className="max-w-[850px] mx-auto px-5 pt-4 pb-48">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {messages.length === 0 && (
-                <motion.div
-                  key="empty-state"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex flex-col mt-12"
-                >
-                  <div className="mb-12 space-y-1">
-                    <span className="text-[56px] font-medium text-transparent bg-clip-text bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] leading-tight block">
-                      Hello, Dimas
-                    </span>
-                    <span className="text-[56px] font-medium text-[#444746] leading-tight block">
-                      Mau bantu apa hari ini?
-                    </span>
-                  </div>
-                </motion.div>
-              )}
+        <main
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto w-full no-scrollbar min-h-0"
+        >
+          <div className="max-w-[850px] mx-auto px-5 pt-4 pb-32">
+            {messages.length === 0 && (
+              <motion.div
+                key="empty-state"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex flex-col mt-12"
+              >
+                <div className="mb-12 space-y-1">
+                  <span className="text-[56px] font-medium text-transparent bg-clip-text bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] leading-tight block">
+                    Hello, Dear!
+                  </span>
+                  <span className="text-[56px] font-medium text-[#444746] leading-tight block">
+                    Pusing Matematika ya? Sini biar aku bantu.
+                  </span>
+                </div>
+              </motion.div>
+            )}
 
-              {messages.map((msg, index) => (
-                <motion.div
-                  key={msg.id || `msg-${index}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-4 mb-8 w-full group"
-                >
-                  <div className="flex-none mt-1">
-                    {msg.role === "assistant" ? (
-                      <div className="mt-1">
-                        <Sparkles size={24} className="text-blue-400 animate-pulse-slow" />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
-                        D
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-[#e3e3e3]">
-                        {msg.role === "assistant" ? "MathAI" : "Anda"}
-                      </span>
+            {messages.map((msg, index) => (
+              <motion.div
+                key={msg.id || `msg-${index}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex gap-4 mb-8 w-full group"
+              >
+                <div className="flex-none mt-1">
+                  {msg.role === "assistant" ? (
+                    <div className="mt-1">
+                      <Sparkles size={24} className="text-blue-400 animate-pulse-slow" />
                     </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
+                      D
+                    </div>
+                  )}
+                </div>
 
-                    {msg.role === "assistant" ? (
-                      <div className="text-[#e3e3e3] text-[16px] leading-[1.8] font-normal tracking-wide">
-                        <MathDisplay content={msg.content} />
-                      </div>
-                    ) : (
-                      <p className="text-[#e3e3e3] text-[16px] leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                    )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-[#e3e3e3]">
+                      {msg.role === "assistant" ? "MathAI" : "Anda"}
+                    </span>
                   </div>
-                </motion.div>
-              ))}
 
-              {/* Loading State */}
-              {isLoading && (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex gap-4 mb-8 w-full"
-                >
-                  <div className="flex-none mt-1">
-                    <Sparkles size={24} className="text-blue-400 animate-pulse" />
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-[#e3e3e3] block mb-2">MathAI</span>
-                    <div className="h-4 w-24 bg-[#333537] rounded animate-pulse" />
-                  </div>
-                </motion.div>
-              )}
+                  {msg.role === "assistant" ? (
+                    <div className="text-[#e3e3e3] text-[16px] leading-[1.8] font-normal tracking-wide">
+                      <MathDisplay content={msg.content} />
+                    </div>
+                  ) : (
+                    <p className="text-[#e3e3e3] text-[16px] leading-relaxed whitespace-pre-wrap">
+                      {msg.content}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            ))}
 
-              <div ref={messagesEndRef} />
-            </AnimatePresence>
+            {/* Loading State */}
+            {isLoading && (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex gap-4 mb-8 w-full"
+              >
+                <div className="flex-none mt-1">
+                  <Sparkles size={24} className="text-blue-400 animate-pulse" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-[#e3e3e3] block mb-2">MathAI</span>
+                  <div className="h-4 w-24 bg-[#333537] rounded animate-pulse" />
+                </div>
+              </motion.div>
+            )}
+
+
           </div>
         </main>
 
         {/* Input Footer */}
         <footer className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-          <div className={`mx-auto transition-all duration-300 ${isSidebarOpen ? 'pl-[280px]' : 'pl-0'}`}>
+          <div className={`mx-auto transition-all duration-300 ${isSidebarOpen ? 'md:pl-[280px]' : 'pl-0'}`}>
             <div className="max-w-[850px] mx-auto px-5 pb-5 bg-[#131314] pointer-events-auto">
 
               <div className="relative">
@@ -260,11 +293,11 @@ export default function Home() {
                     onKeyDown={handleKeyDown}
                     placeholder="Minta MathAI"
                     rows={1}
-                    className="w-full bg-transparent border-0 focus:ring-0 text-[#e3e3e3] placeholder:text-[#c4c7c5] py-5 px-2 max-h-[200px] resize-none overflow-y-auto text-[16px] leading-relaxed"
+                    className="flex-1 w-full bg-transparent border-0 focus:ring-0 text-[#e3e3e3] placeholder:text-[#c4c7c5] py-5 px-4 max-h-[200px] resize-none overflow-y-auto text-[16px] leading-relaxed min-w-0"
                     style={{ minHeight: "64px" }}
                   />
 
-                  <div className="flex items-center gap-2 pr-3 pb-3">
+                  <div className="flex items-center gap-2 pr-5 pb-3 pl-2">
                     {!input.trim() && (
                       <>
                         <button type="button" className="p-2 text-[#c4c7c5] hover:text-[#e3e3e3] hover:bg-[#333537] rounded-full transition-colors">
@@ -280,7 +313,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="p-2 bg-[#e3e3e3] text-[#1e1f20] rounded-full hover:bg-white transition-all shadow-sm disabled:opacity-50"
+                        className="p-3 bg-[#e3e3e3] text-[#1e1f20] rounded-full hover:bg-white transition-all shadow-sm disabled:opacity-50"
                       >
                         <Send size={18} fill="#1e1f20" />
                       </button>
